@@ -1,0 +1,249 @@
+:host {
+  display: block;
+}
+
+.catalog-page {
+  min-width: 0;
+}
+
+.catalog-card {
+  overflow: hidden;
+}
+
+.catalog-summary {
+  min-height: 82px;
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.catalog-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.catalog-summary-label,
+.catalog-summary-note {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.catalog-summary strong {
+  color: #0f172a;
+  font-size: 1.45rem;
+}
+
+.catalog-table-scroll {
+  max-height: calc(100vh - 300px);
+}
+
+.catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.catalog-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 0.9rem 1.5rem;
+  background: #fafcfe;
+  border-bottom: 1px solid #f1f5f9;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.catalog-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+}
+
+.catalog-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.catalog-table tbody td {
+  padding: 1rem 1.5rem;
+  font-size: 0.86rem;
+  vertical-align: middle;
+}
+
+.catalog-name-cell,
+.priority-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.catalog-name-cell > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.catalog-name-cell strong,
+.priority-cell strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.catalog-name-cell small {
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
+.catalog-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.catalog-kpis {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 760px;
+}
+
+.catalog-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 1.25rem;
+}
+
+.catalog-section-heading {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.catalog-section-heading h2 {
+  margin: 0 0 0.2rem;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.catalog-section-heading p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+.priority-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 0 4px #f1f5f9;
+}
+
+.priority-critica,
+.priority-crítica {
+  background: #ef4444;
+  box-shadow: 0 0 0 4px #fee2e2;
+}
+
+.priority-alta {
+  background: #f97316;
+  box-shadow: 0 0 0 4px #ffedd5;
+}
+
+.priority-media {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px #fef3c7;
+}
+
+.priority-baja {
+  background: #6366f1;
+  box-shadow: 0 0 0 4px #e0e7ff;
+}
+
+.states-list {
+  padding: 0.4rem 1.5rem 1rem;
+}
+
+.state-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.state-item:last-child {
+  border-bottom: none;
+}
+
+.state-order {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.state-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.state-copy strong {
+  color: #0f172a;
+  font-size: 0.84rem;
+}
+
+.state-copy small {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 980px) {
+  .catalog-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .catalog-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .catalog-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+.catalog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .45rem;
+}
+
+.catalog-protected {
+  display: block;
+  margin-top: .2rem;
+  color: #94a3b8;
+  font-size: .7rem;
+  font-weight: 600;
+}

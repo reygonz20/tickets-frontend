@@ -1,0 +1,29 @@
+<div class="dash">
+  <div class="head">
+    <div><p class="kicker">HELPDESK PRO</p>
+      <h1>Panel principal</h1>
+      <p>{{ esAdmin ? 'Resumen general de la mesa de ayuda.' : esTecnico ? 'Resumen de tus tickets asignados.' : 'Resumen de tus solicitudes de soporte.' }}</p>
+    </div>
+    <a [routerLink]="enlaceTickets" class="link-btn">Ver tickets</a></div>
+  <div class="stats">
+    <div class="stat"><span>Abiertos</span><strong>{{ resumen.creados }}</strong></div>
+    <div class="stat"><span>Asignados</span><strong>{{ resumen.asignados }}</strong></div>
+    <div class="stat"><span>En proceso</span><strong>{{ resumen.enProceso }}</strong></div>
+    <div class="stat"><span>Pendientes</span><strong>{{ resumen.pendientes }}</strong></div>
+    <div class="stat"><span>Resueltos</span><strong>{{ resumen.resueltos }}</strong></div>
+    <div class="stat"><span>Cerrados</span><strong>{{ resumen.cerrados }}</strong></div>
+  </div>
+  <section class="panel">
+    <div class="panel-head"><h2>Actividad reciente</h2><span>{{ resumen.total }} ticket(s)</span>
+    </div>@for (t of recientes; track t.idTicket) {
+    <a [routerLink]="enlaceTickets" class="recent">
+      <div><strong>{{ t.codigoTicket }}</strong>
+        <p>{{ t.titulo }}</p></div>
+      <div class="right">
+        <span>{{ t.estado.replaceAll('_', ' ') }}</span><small>{{ t.fechaActualizacion || t.fechaCreacion|date:'d MMM, HH:mm' }}</small>
+      </div>
+    </a>
+  } @empty {
+    <div class="empty">No hay tickets para mostrar.</div>
+  }</section>
+</div>

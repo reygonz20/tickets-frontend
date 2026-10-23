@@ -1,0 +1,178 @@
+<div class="layout-wrapper">
+
+  <!-- SIDEBAR IZQUIERDO -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <!-- Logo HelpDesk Pro -->
+      <div class="sidebar-brand">
+        <div class="brand-icon"></div>
+        <span class="brand-text">HelpDesk <strong>Pro</strong></span>
+      </div>
+
+      <!-- Sección: ESPACIO DE TRABAJO -->
+      <p class="menu-section-title">ESPACIO DE TRABAJO</p>
+      <nav class="menu-nav">
+
+        <!-- Panel principal (Todos los roles) -->
+        <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <span>Panel principal</span>
+        </a>
+
+        <!-- Opciones exclusivas de ADMINISTRADOR -->
+        @if (esAdmin) {
+          <a routerLink="/tickets" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+              <path d="M13 5v2"></path>
+              <path d="M13 17v2"></path>
+              <path d="M13 11v2"></path>
+            </svg>
+            <span>Todos los tickets</span>
+          </a>
+
+          <a routerLink="/usuarios" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Usuarios</span>
+          </a>
+
+          <a routerLink="/tecnicos" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+              <path
+                d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+            </svg>
+            <span>Técnicos</span>
+          </a>
+
+          <a routerLink="/categorias" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Categorías</span>
+          </a>
+
+          <a routerLink="/prioridades" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+              <line x1="4" y1="22" x2="4" y2="15"></line>
+            </svg>
+            <span>Prioridades</span>
+          </a>
+
+          <a routerLink="/estados" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M8 12l2.5 2.5L16 9"></path>
+            </svg>
+            <span>Estados</span>
+          </a>
+
+        }
+
+        <!-- Opciones exclusivas de TÉCNICO -->
+        @if (esTecnico) {
+          <a routerLink="/mis-asignados" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+              <path d="M13 5v2"></path>
+              <path d="M13 17v2"></path>
+              <path d="M13 11v2"></path>
+            </svg>
+            <span>Mis tickets asignados</span>
+          </a>
+        }
+
+        <!-- Opciones exclusivas de USUARIO -->
+        @if (esUsuario) {
+          <a routerLink="/mis-tickets" routerLinkActive="active" class="menu-item">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+              <path d="M13 5v2"></path>
+              <path d="M13 17v2"></path>
+              <path d="M13 11v2"></path>
+            </svg>
+            <span>Mis tickets</span>
+          </a>
+
+        }
+
+
+      </nav>
+
+      <!-- Sección: CUENTA -->
+      <p class="menu-section-title">CUENTA</p>
+      <nav class="menu-nav">
+        <a routerLink="/perfil" routerLinkActive="active" class="menu-item">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Mi perfil</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Tarjeta inferior del usuario logueado + Cerrar sesión -->
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar">{{ iniciales }}</div>
+        <div class="user-info">
+          <p class="user-name">{{ usuario?.nombres }}</p>
+          <p class="user-role">{{ nombreRolLegible }}</p>
+        </div>
+        <button class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesión">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO DERECHO -->
+  <div class="main-container">
+    <!-- Topbar superior -->
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>HelpDesk Pro</span>
+        <span class="sep">›</span>
+        <strong>{{ tituloActual }}</strong>
+      </div>
+
+      <!-- Acciones derechas-->
+      <div class="topbar-actions">
+
+        <!-- Perfil en Topbar -->
+        <div class="topbar-user">
+          <div class="avatar-sm">{{ iniciales }}</div>
+          <div>
+            <p class="user-name-sm">{{ usuario?.nombres }}</p>
+            <p class="user-role-sm">{{ nombreRolLegible }}</p>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+
+</div>

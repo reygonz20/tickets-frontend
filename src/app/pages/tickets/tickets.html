@@ -1,0 +1,359 @@
+<div class="tickets-page">
+  <div class="page-header">
+    <div>
+      <p class="page-kicker">GESTIÓN DE TICKETS</p>
+      <h1 class="page-title">{{ tituloPagina }}</h1>
+      <p class="page-subtitle">{{ subtituloPagina }}</p>
+    </div>
+    @if (esAdmin || esUsuario) {
+      <button type="button" class="btn-primary" (click)="abrirNuevoTicket()"><span>＋</span><span>Nuevo ticket</span>
+      </button>
+    }
+  </div>
+
+  @if (mensaje) {
+    <div class="page-alert page-alert-success">{{ mensaje }}</div>
+  }
+  @if (error) {
+    <div class="page-alert page-alert-error">{{ error }}</div>
+  }
+
+  <div class="table-card">
+    <div class="filters-bar ticket-filters">
+      <div class="filter-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" [(ngModel)]="filtroTexto" placeholder="Buscar por código, título, usuario o técnico..." />
+      </div>
+      <select [(ngModel)]="filtroEstado" class="filter-select">
+        <option value="TODOS">Todos los estados</option>@for (e of estados; track e.idEstado) {
+        <option [value]="e.nombre">{{ formatearEstado(e.nombre) }}</option>
+      }</select>
+      <select [(ngModel)]="filtroPrioridad" class="filter-select">
+        <option value="TODAS">Todas las prioridades</option>@for (p of prioridades; track p.idPrioridad) {
+        <option [value]="p.nombre">{{ formatearPrioridad(p.nombre) }}</option>
+      }</select>
+      <select [(ngModel)]="filtroCategoria" class="filter-select">
+        <option value="TODAS">Todas las categorías</option>@for (c of categorias; track c.idCategoria) {
+        <option [value]="c.nombre">{{ c.nombre }}</option>
+      }</select>
+    </div>
+
+    <div class="table-meta-bar"><span
+      class="meta-count">Mostrando <strong>{{ ticketsFiltrados.length }}</strong> de {{ tickets.length }}
+      tickets</span>@if (cargando) {
+      <span class="loading-text">Cargando...</span>
+    }</div>
+
+    <div class="table-responsive ticket-table-scroll">
+      <table class="tickets-table">
+        <thead>
+        <tr>
+          <th>TICKET</th>
+          <th>SOLICITANTE</th>
+          <th>CATEGORÍA</th>
+          <th>PRIORIDAD</th>
+          <th>ESTADO</th>
+          <th>TÉCNICO</th>
+          <th>ACTUALIZADO</th>
+          <th class="text-right"></th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (t of ticketsFiltrados; track t.idTicket) {
+            <tr [class.row-critical]="esCritica(t.prioridad)">
+              <td>
+                <div class="ticket-main-cell"><span class="ticket-code">{{ t.codigoTicket }}</span><span
+                  class="ticket-title">{{ t.titulo }}</span></div>
+              </td>
+              <td class="text-muted">{{ t.usuarioCreador || 'Usuario' }}</td>
+              <td>
+                <div class="category-cell"><span class="category-box"><svg viewBox="0 0 24 24" width="14" height="14"
+                                                                           fill="none" stroke="currentColor"
+                                                                           stroke-width="2"><path
+                  d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span><span>{{ t.categoria }}</span>
+                </div>
+              </td>
+              <td><span class="badge-pill"
+                        [ngClass]="{'prio-critica':esCritica(t.prioridad),'prio-alta':t.prioridad==='ALTA','prio-media':t.prioridad==='MEDIA','prio-baja':t.prioridad==='BAJA'}"><span
+                class="dot"></span>{{ formatearPrioridad(t.prioridad) }}</span></td>
+              <td><span class="badge-pill"
+                        [ngClass]="{'est-progreso':t.estado==='EN_PROCESO','est-asignado':t.estado==='ASIGNADO','est-abierto':t.estado==='CREADO','est-pendiente':t.estado==='PENDIENTE','est-resuelto':t.estado==='RESUELTO','est-cerrado':t.estado==='CERRADO'||t.estado==='CANCELADO'}"><span
+                class="dot"></span>{{ formatearEstado(t.estado) }}</span></td>
+              <td>@if (t.tecnicoAsignado) {
+                <div class="tech-cell">
+                  <div class="tech-avatar">{{ obtenerIniciales(t.tecnicoAsignado) }}</div>
+                  <span>{{ t.tecnicoAsignado }}</span></div>
+              } @else {
+                <span class="unassigned-text">Sin asignar</span>
+              }</td>
+              <td class="text-muted">{{ (t.fechaActualizacion || t.fechaCreacion) | date:'d MMM yyyy, HH:mm' }}</td>
+              <td class="text-right">
+                <div class="row-actions">
+                  <button type="button" class="row-action-btn row-action-primary" (click)="verDetalle(t)">Ver</button>
+                  @if (puedeAsignar(t)) {
+                    <button type="button" class="row-action-btn" (click)="abrirAsignar(t)">Asignar</button>
+                  }
+                  @if (puedeGestionarEstado(t)) {
+                    <button type="button" class="row-action-btn"
+                            (click)="abrirCambiarEstado(t)">{{ esAdmin && esCerrado(t) ? 'Reabrir' : 'Estado' }}
+                    </button>
+                  }
+                  @if (puedeEditar(t)) {
+                    <button type="button" class="btn-icon-edit" (click)="abrirEditar(t)" title="Editar ticket">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                           stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-row">No se encontraron tickets con los filtros seleccionados.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (mostrarModalFormulario) {
+  <div class="modal-backdrop" (click)="mostrarModalFormulario = false">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><p class="modal-kicker">GESTIÓN DE TICKETS</p>
+          <h2 class="modal-title">{{ editando ? 'Editar ticket' : 'Crear nuevo ticket' }}</h2>
+          <p
+            class="modal-subtitle">{{ editando ? 'Actualiza los datos principales de la solicitud.' : 'Registra una nueva solicitud para el equipo de soporte.' }}</p>
+        </div>
+        <button type="button" class="btn-close" (click)="mostrarModalFormulario = false">✕</button>
+      </div>
+      @if (errorModalFormulario) {
+        <div class="modal-alert-error">{{ errorModalFormulario }}</div>
+      }
+      <form class="modal-form" (ngSubmit)="guardarTicket()" novalidate>
+        <div class="form-field" [class.form-field-invalid]="erroresFormulario['titulo']"><label>Título</label><input
+          name="tituloTicket" [(ngModel)]="formulario.titulo" maxlength="200"
+          placeholder="Resume la incidencia" />@if (erroresFormulario['titulo']) {
+          <small class="form-field-error">{{ erroresFormulario['titulo'] }}</small>
+        }</div>
+        <div class="form-field" [class.form-field-invalid]="erroresFormulario['descripcion']"><label>Descripción</label><textarea
+          name="descripcionTicket" [(ngModel)]="formulario.descripcion" rows="5" maxlength="4000"
+          placeholder="Describe el problema con el mayor detalle posible"></textarea>@if (erroresFormulario['descripcion']) {
+          <small class="form-field-error">{{ erroresFormulario['descripcion'] }}</small>
+        }</div>
+        <div class="form-row-2">
+          <div class="form-field" [class.form-field-invalid]="erroresFormulario['idCategoria']"><label>Categoría</label><select
+            name="categoriaTicket" [(ngModel)]="formulario.idCategoria">
+            <option [ngValue]="0">Seleccionar categoría</option>@for (c of categorias; track c.idCategoria) {
+            <option [ngValue]="c.idCategoria">{{ c.nombre }}</option>
+          }</select>@if (erroresFormulario['idCategoria']) {
+            <small class="form-field-error">{{ erroresFormulario['idCategoria'] }}</small>
+          }</div>
+          <div class="form-field" [class.form-field-invalid]="erroresFormulario['idPrioridad']"><label>Prioridad</label><select
+            name="prioridadTicket" [(ngModel)]="formulario.idPrioridad">
+            <option [ngValue]="0">Seleccionar prioridad</option>@for (p of prioridades; track p.idPrioridad) {
+            <option [ngValue]="p.idPrioridad">{{ formatearPrioridad(p.nombre) }}</option>
+          }</select>@if (erroresFormulario['idPrioridad']) {
+            <small class="form-field-error">{{ erroresFormulario['idPrioridad'] }}</small>
+          }</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="mostrarModalFormulario = false">Cancelar</button>
+          <button type="submit" class="btn-save"
+                  [disabled]="guardandoTicket">{{ guardandoTicket ? 'Guardando...' : (editando ? 'Guardar cambios' : 'Crear ticket') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (mostrarModalAsignar && ticketDetalle) {
+  <div class="modal-backdrop" (click)="mostrarModalAsignar = false">
+    <div class="modal-card modal-card-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><p class="modal-kicker">{{ ticketDetalle.codigoTicket }}</p>
+          <h2 class="modal-title">Asignar técnico</h2>
+          <p class="modal-subtitle">Selecciona un integrante disponible del equipo de soporte.</p></div>
+        <button type="button" class="btn-close" (click)="mostrarModalAsignar = false">✕</button>
+      </div>
+      @if (errorAsignar) {
+        <div class="modal-alert-error">{{ errorAsignar }}</div>
+      }
+      <div class="modal-form">
+        <div class="form-field"><label>Técnico disponible</label><select [(ngModel)]="tecnicoSeleccionado">
+          <option [ngValue]="0">Seleccionar técnico</option>@for (t of tecnicos; track t.idTecnico) {
+          <option [ngValue]="t.idTecnico"
+                  [disabled]="t.disponibilidad !== 'DISPONIBLE'">{{ t.nombres }} {{ t.apellidos }}
+            · {{ t.especialidad }} · {{ formatearEstado(t.disponibilidad) }}
+          </option>
+        }</select></div>
+        <div class="form-field"><label>Nota de asignación</label><textarea [(ngModel)]="descripcionAsignacion" rows="4"
+                                                                           maxlength="1000"
+                                                                           placeholder="Añade una nota opcional sobre la asignación"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="mostrarModalAsignar = false">Cancelar</button>
+          <button type="button" class="btn-save" (click)="asignarTecnico()">Asignar técnico</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (mostrarModalEstado && ticketDetalle) {
+  <div class="modal-backdrop" (click)="mostrarModalEstado = false">
+    <div class="modal-card modal-card-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><p class="modal-kicker">{{ ticketDetalle.codigoTicket }}</p>
+          <h2 class="modal-title">{{ esAdmin && esCerrado(ticketDetalle) ? 'Reabrir ticket' : 'Cambiar estado' }}</h2>
+          <p class="modal-subtitle">Actualiza el avance de la atención y deja constancia del cambio.</p></div>
+        <button type="button" class="btn-close" (click)="mostrarModalEstado = false">✕</button>
+      </div>
+      @if (errorEstado) {
+        <div class="modal-alert-error">{{ errorEstado }}</div>
+      }
+      <div class="modal-form">
+        <div class="form-field"><label>Nuevo estado</label><select
+          [(ngModel)]="estadoSeleccionado">@for (e of estadosDisponiblesCambio; track e.idEstado) {
+          <option [ngValue]="e.idEstado">{{ formatearEstado(e.nombre) }}</option>
+        }</select></div>
+        <div class="form-field"><label>Descripción del cambio</label><textarea [(ngModel)]="descripcionEstado"
+                                                                               maxlength="1000" rows="3"
+                                                                               placeholder="Describe brevemente la actualización"></textarea>
+        </div>
+        @if (nombreEstadoSeleccionado === 'RESUELTO') {
+          <div class="form-field"><label>Solución aplicada</label><textarea [(ngModel)]="solucionEstado"
+                                                                            maxlength="4000" rows="4"
+                                                                            placeholder="Describe la solución aplicada al incidente"></textarea>
+          </div>
+        }
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="mostrarModalEstado = false">Cancelar</button>
+          <button type="button" class="btn-save" (click)="cambiarEstado()">Actualizar estado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (mostrarModalDetalle && ticketDetalle) {
+  <div class="modal-backdrop" (click)="mostrarModalDetalle = false">
+    <div class="modal-card ticket-detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header ticket-detail-header">
+        <div><p class="modal-kicker">{{ ticketDetalle.codigoTicket }}</p>
+          <h2 class="modal-title">{{ ticketDetalle.titulo }}</h2>
+          <p class="modal-subtitle">Detalle, conversación e historial de la solicitud.</p></div>
+        <button type="button" class="btn-close" (click)="mostrarModalDetalle = false">✕</button>
+      </div>
+
+      <div class="ticket-detail-grid">
+        <section class="ticket-detail-main">
+          <div class="detail-section-card"><h3>Descripción</h3>
+            <p>{{ ticketDetalle.descripcion }}</p></div>
+          @if (ticketDetalle.solucion) {
+            <div class="detail-section-card solution-card">
+              <div class="detail-section-icon solution-icon">✓</div>
+              <div><h3>Solución aplicada</h3>
+                <p>{{ ticketDetalle.solucion }}</p></div>
+            </div>
+          }
+
+          <div class="detail-section-heading">
+            <div><h3>Conversación</h3>
+              <p>Seguimiento entre el solicitante y el equipo de soporte.</p></div>
+            <span>{{ comentarios.length }} comentario(s)</span></div>
+          <div class="comments-list">
+            @for (c of comentarios; track c.idComentario) {
+              <div class="comment-item">
+                <div class="comment-avatar">{{ inicialesComentario(c) }}</div>
+                <div class="comment-content">
+                  <div class="comment-meta"><strong>{{ nombreComentario(c) }}</strong>@if (rolComentario(c)) {
+                    <span class="comment-role">{{ rolComentario(c) }}</span>
+                  }<span>{{ c.fechaComentario | date:'d MMM yyyy, HH:mm' }}</span></div>
+                  <p>{{ c.comentario }}</p></div>
+              </div>
+            } @empty {
+              <div class="detail-empty">Aún no hay comentarios registrados.</div>
+            }
+          </div>
+
+          @if (ticketCerrado) {
+            <div class="closed-ticket-notice"><strong>Ticket cerrado</strong>
+              <p>La conversación está bloqueada. Solo un administrador puede reabrir el ticket para permitir nuevas
+                modificaciones.</p></div>
+          } @else {
+            <div class="comment-composer" [class.form-field-invalid]="errorComentario"><textarea
+              [(ngModel)]="comentarioNuevo" maxlength="4000" rows="3"
+              placeholder="Escribe un comentario..."></textarea>@if (errorComentario) {
+              <small class="form-field-error">{{ errorComentario }}</small>
+            }
+              <button type="button" class="btn-save" (click)="agregarComentario()"
+                      [disabled]="enviandoComentario">{{ enviandoComentario ? 'Enviando...' : 'Enviar comentario' }}
+              </button>
+            </div>
+          }
+        </section>
+
+        <aside class="ticket-detail-side">
+          <div class="detail-side-card">
+            <h3>Información</h3>
+            <div class="detail-info-row"><span>Estado</span><strong>{{ formatearEstado(ticketDetalle.estado) }}</strong>
+            </div>
+            <div class="detail-info-row">
+              <span>Prioridad</span><strong>{{ formatearPrioridad(ticketDetalle.prioridad) }}</strong></div>
+            <div class="detail-info-row"><span>Categoría</span><strong>{{ ticketDetalle.categoria }}</strong></div>
+            <div class="detail-info-row">
+              <span>Solicitante</span><strong>{{ ticketDetalle.usuarioCreador || 'Usuario' }}</strong></div>
+            <div class="detail-info-row">
+              <span>Técnico</span><strong>{{ ticketDetalle.tecnicoAsignado || 'Sin asignar' }}</strong></div>
+            <div class="detail-info-row">
+              <span>Creado</span><strong>{{ ticketDetalle.fechaCreacion | date:'d MMM yyyy, HH:mm' }}</strong></div>
+            @if (ticketDetalle.fechaAsignacion) {
+              <div class="detail-info-row">
+                <span>Asignado</span><strong>{{ ticketDetalle.fechaAsignacion | date:'d MMM yyyy, HH:mm' }}</strong>
+              </div>
+            }
+            @if (ticketDetalle.fechaResolucion) {
+              <div class="detail-info-row">
+                <span>Resuelto</span><strong>{{ ticketDetalle.fechaResolucion | date:'d MMM yyyy, HH:mm' }}</strong>
+              </div>
+            }
+          </div>
+
+          <div class="detail-side-card">
+            <div class="detail-section-heading side-heading">
+              <div><h3>Historial</h3>
+                <p>Línea de tiempo del ticket.</p></div>
+            </div>
+            <div class="timeline">
+              @for (h of historial; track h.idHistorial) {
+                <div class="timeline-item"><span class="timeline-dot"></span>
+                  <div class="timeline-copy"><strong>{{ h.accion.replaceAll('_', ' ') }}</strong>
+                    <p
+                      class="timeline-user">{{ h.idUsuario === idUsuarioActual ? 'Tú' : (h.nombreUsuario || 'Usuario') }}</p>@if (h.estadoAnterior || h.estadoNuevo || h.descripcion) {
+                      <p>@if (h.estadoAnterior || h.estadoNuevo) {
+                        {{ h.estadoAnterior || '—' }} → {{ h.estadoNuevo || '—' }}
+                      }
+                        @if (h.descripcion) {
+                          <span> · {{ h.descripcion }}</span>
+                        }</p>
+                    }<small>{{ h.fecha | date:'d MMM yyyy, HH:mm' }}</small></div>
+                </div>
+              } @empty {
+                <div class="detail-empty">Sin movimientos registrados.</div>
+              }
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+}

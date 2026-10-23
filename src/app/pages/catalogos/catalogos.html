@@ -1,0 +1,227 @@
+<div class="catalog-page">
+  <div class="page-header">
+    <div>
+      <p class="page-kicker">CONFIGURACIÓN DE TICKETS</p>
+      <h1 class="page-title">{{ titulo }}</h1>
+      <p class="page-subtitle">{{ subtitulo }}</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="abrirNuevo()"><span>＋</span><span>{{ etiquetaBoton }}</span>
+    </button>
+  </div>
+
+  @if (mensaje) {
+    <div class="page-alert page-alert-success">{{ mensaje }}</div>
+  }
+  @if (error && !mostrarModal) {
+    <div class="page-alert page-alert-error">{{ error }}</div>
+  }
+
+  @if (vista === 'categorias') {
+    <div class="summary-grid catalog-kpis">
+      <div class="summary-card"><span class="summary-label">Categorías registradas</span><strong
+        class="summary-value">{{ categorias.length }}</strong></div>
+      <div class="summary-card"><span class="summary-label">Categorías activas</span><strong
+        class="summary-value">{{ totalCategoriasActivas }}</strong></div>
+    </div>
+    <div class="table-card catalog-card">
+      <div class="table-responsive catalog-table-scroll">
+        <table class="catalog-table">
+          <thead>
+          <tr>
+            <th>CATEGORÍA</th>
+            <th>DESCRIPCIÓN</th>
+            <th>ESTADO</th>
+            <th class="text-right"></th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (c of categorias; track c.idCategoria) {
+              <tr>
+                <td>
+                  <div class="catalog-name-cell"><span class="catalog-icon">◎</span>
+                    <div><strong>{{ c.nombre }}</strong></div>
+                  </div>
+                </td>
+                <td class="text-muted">{{ c.descripcion || 'Sin descripción registrada' }}</td>
+                <td><span class="status-badge"
+                          [ngClass]="c.estado === false ? 'status-inactive' : 'status-active'"><span
+                  class="dot"></span>{{ c.estado === false ? 'Inactiva' : 'Activa' }}</span></td>
+                <td class="text-right">
+                  <div class="catalog-actions">
+                    <button class="btn-edit-square" type="button" (click)="editarCategoria(c)" title="Editar">✎
+                    </button>@if (c.estado !== false) {
+                    <button class="btn-delete-square" type="button" (click)="desactivarCategoria(c)" title="Desactivar">
+                      ×
+                    </button>
+                  }</div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-row">No hay categorías registradas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (vista === 'prioridades') {
+    <div class="summary-grid catalog-kpis">
+      <div class="summary-card"><span class="summary-label">Prioridades registradas</span><strong
+        class="summary-value">{{ prioridades.length }}</strong></div>
+    </div>
+    <div class="table-card catalog-card">
+      <div class="table-responsive catalog-table-scroll">
+        <table class="catalog-table">
+          <thead>
+          <tr>
+            <th>PRIORIDAD</th>
+            <th class="text-right"></th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (p of prioridades; track p.idPrioridad) {
+              <tr>
+                <td>
+                  <div class="priority-cell"><span class="priority-dot"
+                                                   [ngClass]="'priority-' + (p.nombre || '').toLowerCase()"></span><strong>{{ formatear(p.nombre) }}</strong>
+                  </div>
+                </td>
+                <td class="text-right">
+                  <div class="catalog-actions">
+                    <button class="btn-edit-square" type="button" (click)="editarPrioridad(p)" title="Editar">✎</button>
+                    <button class="btn-delete-square" type="button" (click)="eliminarPrioridad(p)" title="Eliminar">×
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="2" class="empty-row">No hay prioridades registradas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (vista === 'estados') {
+    <div class="summary-grid catalog-kpis">
+      <div class="summary-card"><span class="summary-label">Estados registrados</span><strong
+        class="summary-value">{{ estados.length }}</strong></div>
+      <div class="summary-card"><span class="summary-label">Estados base protegidos</span><strong class="summary-value">7</strong>
+      </div>
+    </div>
+    <div class="table-card catalog-card">
+      <div class="table-responsive catalog-table-scroll">
+        <table class="catalog-table">
+          <thead>
+          <tr>
+            <th>ORDEN</th>
+            <th>ESTADO</th>
+            <th>DESCRIPCIÓN</th>
+            <th class="text-right"></th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (e of estados; track e.idEstado) {
+              <tr>
+                <td><span class="state-order">{{ e.orden }}</span></td>
+                <td><strong>{{ formatear(e.nombre) }}</strong>@if (esEstadoBase(e)) {
+                  <small class="catalog-protected">Estado base</small>
+                }</td>
+                <td class="text-muted">{{ e.descripcion || 'Sin descripción registrada' }}</td>
+                <td class="text-right">
+                  <div class="catalog-actions">
+                    <button class="btn-edit-square" type="button" (click)="editarEstado(e)" title="Editar">✎</button>
+                    <button class="btn-delete-square" type="button" (click)="eliminarEstado(e)"
+                            [disabled]="esEstadoBase(e)" title="Eliminar">×
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-row">No hay estados registrados.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (mostrarModal) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-card modal-card-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div><p class="modal-kicker">CONFIGURACIÓN</p>
+            <h2
+              class="modal-title">{{ editando ? 'Editar' : 'Crear' }} {{ titulo.toLowerCase().replace('categorías', 'categoría').replace('prioridades', 'prioridad').replace('estados', 'estado') }}</h2>
+            <p class="modal-subtitle">Los cambios se aplicarán al catálogo utilizado por los tickets.</p></div>
+          <button type="button" class="btn-close" (click)="cerrarModal()">✕</button>
+        </div>
+        @if (error) {
+          <div class="modal-alert-error">{{ error }}</div>
+        }
+        <form class="modal-form" (ngSubmit)="guardar()" novalidate>
+          @if (vista === 'categorias') {
+            <div class="form-field" [class.form-field-invalid]="errores['nombre']"><label>Nombre</label><input
+              [(ngModel)]="formCategoria.nombre" name="nombreCategoria" maxlength="100"
+              placeholder="Ej. Redes" />@if (errores['nombre']) {
+              <small class="form-field-error">{{ errores['nombre'] }}</small>
+            }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['descripcion']">
+              <label>Descripción</label><textarea [(ngModel)]="formCategoria.descripcion" name="descripcionCategoria"
+                                                  rows="4" maxlength="255"
+                                                  placeholder="Describe el tipo de incidencias"></textarea>@if (errores['descripcion']) {
+              <small class="form-field-error">{{ errores['descripcion'] }}</small>
+            }</div>
+            @if (editando) {
+              <div class="form-field"><label>Estado</label><select [(ngModel)]="formCategoria.estado"
+                                                                   name="estadoCategoria">
+                <option [ngValue]="true">Activa</option>
+                <option [ngValue]="false">Inactiva</option>
+              </select></div>
+            }
+          }
+          @if (vista === 'prioridades') {
+            <div class="form-field" [class.form-field-invalid]="errores['nombre']"><label>Nombre</label><input
+              [(ngModel)]="formPrioridad.nombre" name="nombrePrioridad" maxlength="50"
+              placeholder="Ej. URGENTE" />@if (errores['nombre']) {
+              <small class="form-field-error">{{ errores['nombre'] }}</small>
+            }</div>
+          }
+          @if (vista === 'estados') {
+            <div class="form-field" [class.form-field-invalid]="errores['nombre']"><label>Nombre funcional</label><input
+              [(ngModel)]="formEstado.nombre" name="nombreEstado" maxlength="50"
+              [disabled]="editando && estadosBase.has(formEstado.nombre.toUpperCase())"
+              placeholder="Ej. EN_REVISION" />@if (editando && estadosBase.has(formEstado.nombre.toUpperCase())) {
+              <small class="form-help">El nombre de un estado base no puede modificarse.</small>
+            }
+              @if (errores['nombre']) {
+                <small class="form-field-error">{{ errores['nombre'] }}</small>
+              }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['descripcion']">
+              <label>Descripción</label><textarea [(ngModel)]="formEstado.descripcion" name="descripcionEstadoCatalogo"
+                                                  rows="4" maxlength="255"></textarea>@if (errores['descripcion']) {
+              <small class="form-field-error">{{ errores['descripcion'] }}</small>
+            }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['orden']"><label>Orden</label><input
+              type="number" min="1" [(ngModel)]="formEstado.orden" name="ordenEstado" />@if (errores['orden']) {
+              <small class="form-field-error">{{ errores['orden'] }}</small>
+            }</div>
+          }
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="guardando">{{ guardando ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

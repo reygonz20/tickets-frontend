@@ -1,0 +1,167 @@
+<div class="usuarios-page">
+  <div class="page-header">
+    <div>
+      <p class="page-kicker">GESTIÓN DE ACCESOS</p>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-subtitle">Gestiona personas, roles y acceso a las cuentas.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="abrirModalNuevo()"><span>＋</span><span>Nuevo usuario</span>
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="filters-bar">
+      <div class="filter-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" [(ngModel)]="filtroTexto" placeholder="Buscar por nombre o correo..." />
+      </div>
+      <select [(ngModel)]="filtroRol" class="filter-select">
+        <option value="TODOS">Todos los roles</option>
+        <option value="ADMIN">Administrador</option>
+        <option value="TECNICO">Técnico</option>
+        <option value="USUARIO">Usuario</option>
+      </select>
+      <select [(ngModel)]="filtroEstado" class="filter-select">
+        <option value="TODOS">Todos los estados</option>
+        <option value="ACTIVO">Activo</option>
+        <option value="INACTIVO">Inactivo</option>
+      </select>
+    </div>
+
+    <div class="table-responsive">
+      <table class="users-table">
+        <thead>
+        <tr>
+          <th>NOMBRE</th>
+          <th>CORREO ELECTRÓNICO</th>
+          <th>ROL</th>
+          <th>TELÉFONO</th>
+          <th>ESTADO</th>
+          <th>FECHA DE REGISTRO</th>
+          <th class="text-right"></th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (u of usuariosFiltrados; track u.idUsuario) {
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ obtenerIniciales(u) }}</div>
+                  <span class="user-fullname">{{ u.nombres }} {{ u.apellidos }}</span></div>
+              </td>
+              <td class="text-muted">{{ u.correo }}</td>
+              <td><span class="role-badge"
+                        [ngClass]="{'role-admin':u.rol==='ADMIN','role-tecnico':u.rol==='TECNICO','role-usuario':u.rol==='USUARIO'}"><span
+                class="dot"></span>{{ formatearRol(u.rol) }}</span></td>
+              <td class="text-muted">{{ u.telefono || '—' }}</td>
+              <td><span class="status-badge" [ngClass]="u.estado ? 'status-active' : 'status-inactive'"><span
+                class="dot"></span>{{ u.estado ? 'Activo' : 'Inactivo' }}</span></td>
+              <td class="text-muted">{{ u.fechaCreacion | date:'d MMM yyyy' }}</td>
+              <td class="text-right">
+                <button type="button" class="btn-icon-edit" (click)="abrirModalEditar(u)" title="Editar usuario">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-row">No se encontraron usuarios con los filtros seleccionados.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  @if (mostrarModal) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div><p class="modal-kicker">GESTIÓN DE USUARIOS</p>
+            <h2 class="modal-title">{{ modoEdicion ? 'Editar usuario' : 'Crear nuevo usuario' }}</h2>
+            <p
+              class="modal-subtitle">{{ modoEdicion ? 'Modifica los datos del usuario y configura su acceso.' : 'Añade un usuario y configura su acceso.' }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModal()">✕</button>
+        </div>
+        @if (mensajeErrorModal) {
+          <div class="modal-alert-error">{{ mensajeErrorModal }}</div>
+        }
+
+        <form (ngSubmit)="guardarUsuario()" class="modal-form" novalidate>
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="errores['nombres']"><label>Nombre</label><input
+              type="text" name="nombres" [(ngModel)]="formulario.nombres" placeholder="Nombre"
+              maxlength="100" />@if (errores['nombres']) {
+              <small class="form-field-error">{{ errores['nombres'] }}</small>
+            }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['apellidos']"><label>Apellido</label><input
+              type="text" name="apellidos" [(ngModel)]="formulario.apellidos" placeholder="Apellido"
+              maxlength="100" />@if (errores['apellidos']) {
+              <small class="form-field-error">{{ errores['apellidos'] }}</small>
+            }</div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="errores['correo']"><label>Correo
+              electrónico</label><input type="email" name="correo" [(ngModel)]="formulario.correo"
+                                        placeholder="nombre@empresa.com" />@if (errores['correo']) {
+              <small class="form-field-error">{{ errores['correo'] }}</small>
+            }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['telefono']"><label>Teléfono</label><input
+              type="text" name="telefono" [(ngModel)]="formulario.telefono" placeholder="9XXXXXXXX" inputmode="numeric"
+              maxlength="9" />@if (errores['telefono']) {
+              <small class="form-field-error">{{ errores['telefono'] }}</small>
+            }</div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="errores['rolAsignado']"><label>Rol</label><select
+              name="rolAsignado" [(ngModel)]="formulario.rolAsignado" [disabled]="editandoMiPropiaCuenta">
+              <option value="USUARIO">Usuario</option>
+              <option value="TECNICO">Técnico</option>
+              <option value="ADMIN">Administrador</option>
+            </select>@if (editandoMiPropiaCuenta) {
+              <small class="form-help">No puedes cambiar tu propio rol.</small>
+            }
+              @if (errores['rolAsignado']) {
+                <small class="form-field-error">{{ errores['rolAsignado'] }}</small>
+              }</div>
+            <div class="form-field"><label>Estado</label><select name="estado" [(ngModel)]="formulario.estado"
+                                                                 [disabled]="editandoMiPropiaCuenta">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>@if (editandoMiPropiaCuenta) {
+              <small class="form-help">No puedes desactivar tu propia cuenta.</small>
+            }</div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="errores['password']"><label>Contraseña</label><input
+              type="password" name="password" [(ngModel)]="formulario.password"
+              [placeholder]="modoEdicion ? 'Dejar vacío para mantener' : 'Mínimo 6 caracteres'" />@if (errores['password']) {
+              <small class="form-field-error">{{ errores['password'] }}</small>
+            }</div>
+            <div class="form-field" [class.form-field-invalid]="errores['confirmarPassword']"><label>Confirmar
+              contraseña</label><input type="password" name="confirmarPassword" [(ngModel)]="confirmarPassword"
+                                       [placeholder]="modoEdicion ? 'Solo si cambias la contraseña' : 'Repite la contraseña'" />@if (errores['confirmarPassword']) {
+              <small class="form-field-error">{{ errores['confirmarPassword'] }}</small>
+            }</div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn-save"
+                    [disabled]="guardando">{{ guardando ? 'Guardando...' : 'Guardar usuario' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,295 @@
+<div class="perfil-page">
+
+  <!-- CABECERA -->
+  <div class="page-header">
+    <div>
+      <p class="page-kicker">CUENTA</p>
+      <h1 class="page-title">Mi perfil</h1>
+      <p class="page-subtitle">Gestiona tu información personal y la seguridad de tu cuenta.</p>
+    </div>
+
+    @if (mensajeExito) {
+      <div class="toast-success">
+        <span>✓</span>
+        <span>{{ mensajeExito }}</span>
+      </div>
+    }
+  </div>
+
+  @if (cargando) {
+    <div class="profile-loading-card">Cargando información del perfil...</div>
+  }
+
+  @if (!cargando && mensajeCargaPerfil) {
+    <div class="profile-error-card">{{ mensajeCargaPerfil }}</div>
+  }
+
+  @if (usuario) {
+    <div class="perfil-grid">
+
+      <!-- COLUMNA IZQUIERDA: TARJETA RESUMEN DEL USUARIO -->
+      <div class="profile-summary-card">
+        <div class="profile-banner"></div>
+
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar">{{ iniciales }}</div>
+        </div>
+
+        <div class="profile-identity">
+          <h2 class="profile-name">{{ usuario.nombres }} {{ usuario.apellidos }}</h2>
+          <p class="profile-dept">{{ departamentoLegible }}</p>
+
+          <span
+            class="role-badge"
+            [ngClass]="{
+              'role-admin': usuario.rol === 'ADMIN',
+              'role-tecnico': usuario.rol === 'TECNICO',
+              'role-usuario': usuario.rol === 'USUARIO'
+            }"
+          >
+            <span class="dot"></span>
+            {{ rolLegible }}
+          </span>
+        </div>
+
+        <div class="profile-stats">
+          <div class="stat-box">
+            <span class="stat-number">{{ ticketsCreados }}</span>
+            <span class="stat-label">Tickets creados</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-number">{{ ticketsResueltos }}</span>
+            <span class="stat-label">Resueltos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: INFORMACIÓN PERSONAL Y SEGURIDAD -->
+      <div class="profile-details-card">
+
+        <!-- Encabezado Información Personal -->
+        <div class="details-header">
+          <div>
+            <h3 class="details-title">Información personal</h3>
+            <p class="details-subtitle">Tu perfil y datos de contacto</p>
+          </div>
+
+          <button type="button" class="btn-outline" (click)="abrirModalEditarPerfil()">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+            <span>Editar perfil</span>
+          </button>
+        </div>
+
+        <!-- Cuadrícula 2x3 de datos -->
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Nombre completo</span>
+            <span class="info-value">{{ usuario.nombres }} {{ usuario.apellidos }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Correo electrónico</span>
+            <span class="info-value">{{ usuario.correo }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ usuario.telefono || 'No registrado' }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Rol</span>
+            <span class="info-value">{{ rolLegible }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Departamento</span>
+            <span class="info-value">{{ departamentoLegible }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Miembro desde</span>
+            <span class="info-value">{{ usuario.fechaCreacion | date:'d \'de\' MMMM \'de\' yyyy' }}</span>
+          </div>
+        </div>
+
+        <hr class="section-divider" />
+
+        <!-- Fila inferior de Contraseña y seguridad -->
+        <div class="security-row">
+          <div class="security-left">
+            <div class="security-icon-box">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="security-title">Contraseña y seguridad</h4>
+              <p class="security-subtitle">Autenticación protegida con encriptación BCrypt</p>
+            </div>
+          </div>
+
+          <button type="button" class="btn-outline" (click)="abrirModalPassword()">
+            Cambiar contraseña
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+  <!-- MODAL 1: EDITAR INFORMACIÓN PERSONAL -->
+  @if (mostrarModalPerfil) {
+    <div class="modal-backdrop" (click)="cerrarModalPerfil()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <div>
+            <p class="modal-kicker">CUENTA DE USUARIO</p>
+            <h2 class="modal-title">Editar perfil</h2>
+            <p class="modal-subtitle">Actualiza tu nombre y datos de contacto.</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalPerfil()">✕</button>
+        </div>
+
+        @if (mensajeError) {
+          <div class="modal-alert-error">{{ mensajeError }}</div>
+        }
+
+        <form (ngSubmit)="guardarPerfil()" class="modal-form">
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="erroresPerfil['nombres']">
+              <label>Nombre</label>
+              <input type="text" name="nombres" [(ngModel)]="formPerfil.nombres" placeholder="Nombre" maxlength="100" />
+              @if (erroresPerfil['nombres']) {
+                <small class="form-field-error">{{ erroresPerfil['nombres'] }}</small>
+              }
+            </div>
+            <div class="form-field" [class.form-field-invalid]="erroresPerfil['apellidos']">
+              <label>Apellido</label>
+              <input type="text" name="apellidos" [(ngModel)]="formPerfil.apellidos" placeholder="Apellido"
+                     maxlength="100" />
+              @if (erroresPerfil['apellidos']) {
+                <small class="form-field-error">{{ erroresPerfil['apellidos'] }}</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="erroresPerfil['correo']">
+              <label>Correo electrónico</label>
+              <input type="email" name="correo" [(ngModel)]="formPerfil.correo" placeholder="correo@empresa.com" />
+              @if (erroresPerfil['correo']) {
+                <small class="form-field-error">{{ erroresPerfil['correo'] }}</small>
+              }
+            </div>
+            <div class="form-field" [class.form-field-invalid]="erroresPerfil['telefono']">
+              <label>Teléfono</label>
+              <input type="text" name="telefono" [(ngModel)]="formPerfil.telefono" placeholder="9XXXXXXXX"
+                     inputmode="numeric" maxlength="9" />
+              @if (erroresPerfil['telefono']) {
+                <small class="form-field-error">{{ erroresPerfil['telefono'] }}</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label>Rol asignado</label>
+              <input type="text" [value]="rolLegible" disabled class="input-disabled" />
+            </div>
+            <div class="form-field">
+              <label>Departamento</label>
+              <input type="text" [value]="departamentoLegible" disabled class="input-disabled" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModalPerfil()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="guardando">
+              {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
+  <!-- MODAL 2: CAMBIAR CONTRASEÑA -->
+
+  @if (mostrarModalPassword) {
+    <div class="modal-backdrop" (click)="cerrarModalPassword()">
+      <div class="modal-card modal-card-sm" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <div>
+            <p class="modal-kicker">SEGURIDAD DE LA CUENTA</p>
+            <h2 class="modal-title">Cambiar contraseña</h2>
+            <p class="modal-subtitle">Ingresa y confirma tu nueva clave de acceso.</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalPassword()">✕</button>
+        </div>
+
+        @if (mensajeError) {
+          <div class="modal-alert-error">{{ mensajeError }}</div>
+        }
+
+        <form (ngSubmit)="guardarPassword()" class="modal-form">
+
+          <div class="form-field">
+            <label>Nueva contraseña</label>
+            <div class="password-input-box">
+              <input
+                [type]="mostrarNuevaPassword ? 'text' : 'password'"
+                name="nuevaPassword"
+                [(ngModel)]="formPassword.nuevaPassword"
+                placeholder="Mínimo 6 caracteres"
+                required
+              />
+              <button type="button" class="btn-eye" (click)="mostrarNuevaPassword = !mostrarNuevaPassword">
+                {{ mostrarNuevaPassword ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            </div>
+            @if (erroresPassword['nuevaPassword']) {
+              <small class="form-field-error">{{ erroresPassword['nuevaPassword'] }}</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label>Confirmar nueva contraseña</label>
+            <div class="password-input-box">
+              <input
+                [type]="mostrarConfirmarPassword ? 'text' : 'password'"
+                name="confirmarPassword"
+                [(ngModel)]="formPassword.confirmarPassword"
+                placeholder="Repite la nueva contraseña"
+                required
+              />
+              <button type="button" class="btn-eye" (click)="mostrarConfirmarPassword = !mostrarConfirmarPassword">
+                {{ mostrarConfirmarPassword ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            </div>
+            @if (erroresPassword['confirmarPassword']) {
+              <small class="form-field-error">{{ erroresPassword['confirmarPassword'] }}</small>
+            }
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModalPassword()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="guardando">
+              {{ guardando ? 'Actualizando...' : 'Actualizar contraseña' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
+</div>

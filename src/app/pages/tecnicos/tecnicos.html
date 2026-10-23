@@ -1,0 +1,410 @@
+<div class="tecnicos-page">
+
+  <!-- CABECERA -->
+  <div class="page-header">
+    <div>
+      <p class="page-kicker">EQUIPO DE SOPORTE</p>
+      <h1 class="page-title">Técnicos</h1>
+      <p class="page-subtitle">Gestiona especialidades, disponibilidad y estado del equipo de soporte.</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="abrirModalEspecialidades()">
+        <span>◎</span>
+        <span>Especialidades</span>
+      </button>
+      <button type="button" class="btn-primary" (click)="abrirModalNuevoTecnico()">
+        <span>＋</span>
+        <span>Añadir técnico</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span class="summary-label">Usuarios con rol técnico</span>
+      <strong class="summary-value">{{ totalUsuariosTecnicos }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Perfiles configurados</span>
+      <strong class="summary-value">{{ totalPerfilesConfigurados }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Disponibles ahora</span>
+      <strong class="summary-value">{{ totalDisponibles }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Pendientes de configurar</span>
+      <strong class="summary-value">{{ totalPendientesConfigurar }}</strong>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="table-card filters-card">
+    <div class="filters-bar">
+      <div class="filter-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="filtroTexto"
+          placeholder="Buscar por nombre, correo o especialidad..."
+        />
+      </div>
+
+      <select [(ngModel)]="filtroEspecialidad" class="filter-select">
+        <option value="TODAS">Todas las especialidades</option>
+        @for (e of especialidades; track e.idEspecialidad) {
+          <option [value]="e.idEspecialidad">{{ e.nombre }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="filtroDisponibilidad" class="filter-select">
+        <option value="TODAS">Toda disponibilidad</option>
+        <option value="DISPONIBLE">Disponible</option>
+        <option value="OCUPADO">Ocupado</option>
+        <option value="NO_DISPONIBLE">No disponible</option>
+      </select>
+
+      <select [(ngModel)]="filtroEstado" class="filter-select">
+        <option value="TODOS">Todos los estados</option>
+        <option value="ACTIVO">Activo</option>
+        <option value="INACTIVO">Inactivo</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TARJETAS -->
+  <div class="tecnicos-grid">
+    @for (item of tecnicosFiltrados; track item.usuario.idUsuario) {
+      @let u = item.usuario;
+      @let t = item.perfil;
+      <div class="tech-card" [class.tech-card-inactive]="!(t ? t.estado : u.estado)" [class.tech-card-pending]="!t">
+
+        <div class="tech-card-top">
+          <div class="tech-top-left">
+            <div class="tech-avatar-lg">{{ obtenerInicialesUsuario(u) }}</div>
+            @if (t) {
+              <span class="avail-badge" [ngClass]="claseDisponibilidad(t.disponibilidad)">
+                <span class="dot"></span>
+                {{ formatearDisponibilidad(t.disponibilidad) }}
+              </span>
+            } @else {
+              <span class="avail-badge avail-pending">
+                <span class="dot"></span>
+                Pendiente de configurar
+              </span>
+            }
+          </div>
+
+          <span class="status-badge" [ngClass]="(t ? t.estado : u.estado) ? 'status-active' : 'status-inactive'">
+            <span class="dot"></span>
+            {{ (t ? t.estado : u.estado) ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+
+        <div class="tech-identity">
+          <h3 class="tech-name">{{ u.nombres }} {{ u.apellidos }}</h3>
+          <p class="tech-email">{{ u.correo }}</p>
+          <p class="tech-phone">{{ u.telefono || 'Sin teléfono registrado' }}</p>
+
+          <div class="specialty-pill" [class.specialty-pending]="!t">
+            <span class="spec-icon">◎</span>
+            <span>{{ t?.especialidad || 'Perfil técnico sin configurar' }}</span>
+          </div>
+        </div>
+
+        <div class="tech-info-grid">
+          <div class="tech-info-item">
+            <span class="info-label">Tickets asignados</span>
+            <strong>{{ ticketsAsignados(t) }}</strong>
+          </div>
+          <div class="tech-info-item">
+            <span class="info-label">Tickets resueltos</span>
+            <strong>{{ ticketsResueltos(t) }}</strong>
+          </div>
+        </div>
+
+        <div class="tech-card-actions">
+          @if (t) {
+            <button type="button" class="btn-view-profile" (click)="verPerfil(t)">
+              Ver perfil
+            </button>
+
+            <button type="button" class="btn-edit-square" title="Editar técnico" (click)="abrirModalEditarTecnico(t)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
+            </button>
+
+            @if (t.estado) {
+              <button type="button" class="btn-delete-square" title="Desactivar técnico" (click)="desactivarTecnico(t)">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18"></path>
+                  <path d="M8 6V4h8v2"></path>
+                  <path d="M19 6l-1 14H6L5 6"></path>
+                </svg>
+              </button>
+            }
+          } @else {
+            <button type="button" class="btn-configure-profile" (click)="configurarUsuarioComoTecnico(u)"
+                    [disabled]="!u.estado">
+              Configurar perfil técnico
+            </button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="table-card empty-row" style="grid-column: 1 / -1;">
+        {{ cargando ? 'Cargando técnicos...' : 'No se encontraron usuarios técnicos con los filtros seleccionados.' }}
+      </div>
+    }
+  </div>
+
+  <!-- MODAL CREAR / EDITAR TÉCNICO -->
+  @if (mostrarModalTecnico) {
+    <div class="modal-backdrop" (click)="cerrarModalTecnico()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <p class="modal-kicker">GESTIÓN DE TÉCNICOS</p>
+            <h2 class="modal-title">{{ modoEdicionTecnico ? 'Editar técnico' : 'Añadir técnico' }}</h2>
+            <p class="modal-subtitle">
+              {{
+                modoEdicionTecnico
+                  ? 'Actualiza la especialidad, disponibilidad y estado del técnico.'
+                  : 'Selecciona un usuario con rol TÉCNICO y completa su perfil de soporte.'
+              }}
+            </p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalTecnico()" title="Cerrar">✕</button>
+        </div>
+
+        @if (mensajeErrorTecnico) {
+          <div class="modal-alert-error">{{ mensajeErrorTecnico }}</div>
+        }
+
+        <form (ngSubmit)="guardarTecnico()" class="modal-form">
+          <div class="form-field" [class.form-field-invalid]="erroresTecnico['idUsuario']">
+            <label>Usuario técnico</label>
+            @if (!modoEdicionTecnico) {
+              <select name="idUsuario" [(ngModel)]="formularioTecnico.idUsuario" required>
+                <option [ngValue]="0">Seleccionar usuario...</option>
+                @for (u of usuariosDisponiblesParaTecnico; track u.idUsuario) {
+                  <option [ngValue]="u.idUsuario">
+                    {{ u.nombres }} {{ u.apellidos }} · {{ u.correo }}
+                  </option>
+                }
+              </select>
+              @if (usuariosDisponiblesParaTecnico.length === 0) {
+                <p class="form-help">No hay usuarios activos con rol TÉCNICO pendientes de registrar.</p>
+              }
+              @if (erroresTecnico['idUsuario']) {
+                <small class="form-field-error">{{ erroresTecnico['idUsuario'] }}</small>
+              }
+            } @else {
+              <input type="text" [value]="nombreUsuarioSeleccionado()" disabled />
+            }
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field" [class.form-field-invalid]="erroresTecnico['idEspecialidad']">
+              <label>Especialidad</label>
+              <select name="idEspecialidad" [(ngModel)]="formularioTecnico.idEspecialidad" required>
+                <option [ngValue]="0">Seleccionar...</option>
+                @for (e of especialidadesActivas; track e.idEspecialidad) {
+                  <option [ngValue]="e.idEspecialidad">{{ e.nombre }}</option>
+                }
+              </select>
+              @if (erroresTecnico['idEspecialidad']) {
+                <small class="form-field-error">{{ erroresTecnico['idEspecialidad'] }}</small>
+              }
+            </div>
+
+            <div class="form-field" [class.form-field-invalid]="erroresTecnico['disponibilidad']">
+              <label>Disponibilidad</label>
+              <select name="disponibilidad" [(ngModel)]="formularioTecnico.disponibilidad">
+                <option value="DISPONIBLE">Disponible</option>
+                <option value="OCUPADO">Ocupado</option>
+                <option value="NO_DISPONIBLE">No disponible</option>
+              </select>
+              @if (erroresTecnico['disponibilidad']) {
+                <small class="form-field-error">{{ erroresTecnico['disponibilidad'] }}</small>
+              }
+            </div>
+          </div>
+
+          @if (modoEdicionTecnico) {
+            <div class="form-field">
+              <label>Estado</label>
+              <select name="estado" [(ngModel)]="formularioTecnico.estado">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+              </select>
+            </div>
+          }
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModalTecnico()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="guardandoTecnico">
+              {{ guardandoTecnico ? 'Guardando...' : (modoEdicionTecnico ? 'Guardar cambios' : 'Registrar técnico') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DETALLE -->
+  @if (mostrarModalDetalle) {
+    <div class="modal-backdrop" (click)="cerrarModalDetalle()">
+      <div class="modal-card modal-card-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <p class="modal-kicker">PERFIL TÉCNICO</p>
+            <h2 class="modal-title">Detalle del técnico</h2>
+            <p class="modal-subtitle">Información obtenida directamente desde técnico-service.</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalDetalle()">✕</button>
+        </div>
+
+        @if (cargandoDetalle) {
+          <div class="detail-loading">Cargando perfil...</div>
+        } @else if (tecnicoDetalle) {
+          <div class="detail-profile">
+            <div class="detail-avatar">{{ obtenerIniciales(tecnicoDetalle) }}</div>
+            <h3>{{ tecnicoDetalle.nombres }} {{ tecnicoDetalle.apellidos }}</h3>
+            <p>{{ tecnicoDetalle.correo }}</p>
+
+            <div class="detail-list">
+              <div><span>Teléfono</span><strong>{{ tecnicoDetalle.telefono || '—' }}</strong></div>
+              <div><span>Especialidad</span><strong>{{ tecnicoDetalle.especialidad }}</strong></div>
+              <div>
+                <span>Disponibilidad</span><strong>{{ formatearDisponibilidad(tecnicoDetalle.disponibilidad) }}</strong>
+              </div>
+              <div><span>Estado</span><strong>{{ tecnicoDetalle.estado ? 'Activo' : 'Inactivo' }}</strong></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- MODAL ESPECIALIDADES -->
+  @if (mostrarModalEspecialidades) {
+    <div class="modal-backdrop" (click)="cerrarModalEspecialidades()">
+      <div class="modal-card modal-card-wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <p class="modal-kicker">CONFIGURACIÓN</p>
+            <h2 class="modal-title">Especialidades</h2>
+            <p class="modal-subtitle">Administra las especialidades disponibles para el equipo técnico.</p>
+          </div>
+          <button type="button" class="btn-close" (click)="cerrarModalEspecialidades()">✕</button>
+        </div>
+
+        <div class="specialty-manager">
+          <div class="specialty-form-panel">
+            <h3>{{ editandoEspecialidad ? 'Editar especialidad' : 'Nueva especialidad' }}</h3>
+
+            @if (mensajeErrorEspecialidad) {
+              <div class="modal-alert-error">{{ mensajeErrorEspecialidad }}</div>
+            }
+
+            <form (ngSubmit)="guardarEspecialidad()" class="modal-form">
+              <div class="form-field" [class.form-field-invalid]="erroresEspecialidad['nombre']">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  name="nombreEspecialidad"
+                  [(ngModel)]="formularioEspecialidad.nombre"
+                  placeholder="Ej. Redes"
+                  required
+                />
+                @if (erroresEspecialidad['nombre']) {
+                  <small class="form-field-error">{{ erroresEspecialidad['nombre'] }}</small>
+                }
+              </div>
+
+              <div class="form-field" [class.form-field-invalid]="erroresEspecialidad['descripcion']">
+                <label>Descripción</label>
+                <textarea
+                  name="descripcionEspecialidad"
+                  [(ngModel)]="formularioEspecialidad.descripcion"
+                  rows="4"
+                  placeholder="Describe el enfoque de esta especialidad..."
+                  maxlength="255"
+                ></textarea>
+                @if (erroresEspecialidad['descripcion']) {
+                  <small class="form-field-error">{{ erroresEspecialidad['descripcion'] }}</small>
+                }
+              </div>
+
+              @if (editandoEspecialidad) {
+                <div class="form-field">
+                  <label>Estado</label>
+                  <select name="estadoEspecialidad" [(ngModel)]="formularioEspecialidad.estado">
+                    <option [ngValue]="true">Activa</option>
+                    <option [ngValue]="false">Inactiva</option>
+                  </select>
+                </div>
+              }
+
+              <div class="specialty-form-actions">
+                @if (editandoEspecialidad) {
+                  <button type="button" class="btn-cancel" (click)="cancelarEdicionEspecialidad()">Cancelar edición
+                  </button>
+                }
+                <button type="submit" class="btn-save" [disabled]="guardandoEspecialidad">
+                  {{ guardandoEspecialidad ? 'Guardando...' : (editandoEspecialidad ? 'Guardar cambios' : 'Crear especialidad') }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="specialty-list-panel">
+            @for (e of especialidades; track e.idEspecialidad) {
+              <div class="specialty-row">
+                <div>
+                  <div class="specialty-row-title">
+                    <strong>{{ e.nombre }}</strong>
+                    <span class="status-badge" [ngClass]="e.estado ? 'status-active' : 'status-inactive'">
+                      <span class="dot"></span>
+                      {{ e.estado ? 'Activa' : 'Inactiva' }}
+                    </span>
+                  </div>
+                  <p>{{ e.descripcion || 'Sin descripción' }}</p>
+                </div>
+
+                <div class="specialty-actions">
+                  <button type="button" class="btn-edit-square" (click)="editarEspecialidad(e)" title="Editar">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </button>
+                  @if (e.estado) {
+                    <button type="button" class="btn-delete-square" (click)="desactivarEspecialidad(e)"
+                            title="Desactivar">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                           stroke-width="2">
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4h8v2"></path>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-specialties">No hay especialidades registradas.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
